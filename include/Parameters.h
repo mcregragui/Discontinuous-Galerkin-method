@@ -21,11 +21,17 @@ struct Parameters
 
     double dx;
 
+    double dt;
+
     double gamma;
 
     int method;
 
-    int adv;
+    double adv;
+
+    int end;
+
+    int nbCells;
 
     
 };

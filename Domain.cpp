@@ -1,11 +1,11 @@
 #include "include/Domain.h"
 
 
-Domain::Domain(int nbCells)
+Domain::Domain()
 {
-    m_nbCells=nbCells;
+    m_nbCells=m_param->nbCells;
 
-    for(int i=0;i<nbCells;i++)
+    for(int i=0;i<m_param->nbCells;i++)
     {
         m_cells.push_back(new Cell(i,m_param->dx));
     }

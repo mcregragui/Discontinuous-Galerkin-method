@@ -39,7 +39,13 @@ void Cell::positions()
 //------------------------------------------INITIAL CONDITION IN THIS CELL---------------------------------------
 void Cell::initial()
 {
-
+    for(int i=0;i<m_param->nbVar;i++)
+    {
+        for(int j=0;j<m_param->Order;j++)
+        {
+            m_freedom[std::make_pair(i,j)]=1.0;
+        }
+    }
 }
 //---------------------------------------------------------------------------------------------------------------
 
@@ -79,7 +85,7 @@ void Cell::quadrature()
             {
                 for(int j=0;j<m_quad->Points.size();j++)
                 {
-                    m_integral[std::make_pair(i,l)]+=m_quad->Points[j]*getFunction(m_pos+h*m_quad->Weights[j])[i];
+                    m_integral[std::make_pair(i,l)]+=m_quad->Weights[j]*getFunction(m_pos+h*m_quad->Points[j])[i];
                 }
                 m_integral[std::make_pair(i,l)]=h*m_integral[std::make_pair(i,l)];
             }
@@ -109,7 +115,7 @@ void Cell::quadrature()
                 {
                     for(int j=0;j<m_quad->Points.size();j++)
                     {
-                        m_integral[std::make_pair(i,l)]+=m_quad->Points[j]*getFunction(m_pos+h*m_quad->Weights[j])[i];
+                        m_integral[std::make_pair(i,l)]+=m_quad->Weights[j]*getFunction(m_pos+h*m_quad->Points[j])[i];
                     }
                     m_integral[std::make_pair(i,l)]=h*m_integral[std::make_pair(i,l)];
                 }
@@ -117,7 +123,7 @@ void Cell::quadrature()
                 {
                     for(int j=0;j<m_quad->Points.size();j++)
                     {
-                        m_integral[std::make_pair(i,l)]+=m_quad->Points[j]*getFunction(m_pos+h*m_quad->Weights[j])[i]*getLegendre(1,m_pos+h*m_quad->Weights[j]);
+                        m_integral[std::make_pair(i,l)]+=m_quad->Weights[j]*getFunction(m_pos+h*m_quad->Points[j])[i]*getLegendre(1,m_pos+h*m_quad->Points[j]);
                     }
                     m_integral[std::make_pair(i,l)]=h*m_integral[std::make_pair(i,l)];
                 }
@@ -162,7 +168,8 @@ std::map<int,double> Cell::getFunction(double x)
 {
     std::map<int,double> sol0=getSolution(x);
     std::map<int,double> sol;
-
+    double p;
+    std::cout<<"nvar= "<<m_param->nbVar<<std::endl;
     switch (m_param->nbVar)
     {
     case 1:
@@ -170,8 +177,6 @@ std::map<int,double> Cell::getFunction(double x)
         return sol;
 
     case 3:
-        double p=0.0;
-
         p=(m_param->gamma-1.0)*(sol0[2]-0.5*sol0[1]*sol0[1]/sol0[0]);
 
         sol[0]=sol0[1];
@@ -192,7 +197,7 @@ std::map<int,double> Cell::getFunction(double x)
 std::map<int,double> Cell::getFU(std::map<int,double> sol0)
 {
     std::map<int,double> sol;
-
+    double p;
     switch (m_param->nbVar)
     {
     case 1:
@@ -200,8 +205,6 @@ std::map<int,double> Cell::getFU(std::map<int,double> sol0)
         return sol;
 
     case 3:
-        double p=0.0;
-
         p=(m_param->gamma-1.0)*(sol0[2]-0.5*sol0[1]*sol0[1]/sol0[0]);
 
         sol[0]=sol0[1];
@@ -334,7 +337,7 @@ void Cell::eigens()
 
         //--------------------------------------------------Right-------------------------
 
-        std::map<int,double> sol0=getSolution(m_rightPos);
+        sol0=getSolution(m_rightPos);
         u=sol0[1]/sol0[0];
         p=(m_param->gamma-1.0)*(sol0[2]-0.5*sol0[1]*sol0[1]/sol0[0]);
         c=sqrt(m_param->gamma*p/sol0[0]);

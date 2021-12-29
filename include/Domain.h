@@ -14,7 +14,7 @@ private:
     Parameters* m_param;
 
 public:
-    Domain(int nbCells);
+    Domain();
     ~Domain();
 
     std::map<int, double> rightFlux(int i);
@@ -24,6 +24,8 @@ public:
     std::map<std::pair<int,int>,double> flux(int i);
 
     std::map<std::pair<int,int>,double> RHS(int i);
+
+    std::vector<Cell*> getCells(){return m_cells;};
 
 
 };

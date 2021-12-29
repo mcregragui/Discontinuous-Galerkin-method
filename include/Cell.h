@@ -3,6 +3,7 @@
 
 #include "Parameters.h"
 #include <algorithm>
+#include<cmath>
 
 
 
@@ -62,12 +63,16 @@ public:
 
     void eigens();
 
+    void updateFreedom(std::map<std::pair<int,int>,double> freedom){m_freedom=freedom;};
+
     std::map<int,double> getLeftBorder(){return m_leftBorder;};
     std::map<int,double> getRightBorder(){return m_rightBorder;};
     double getLeftEigen(){return m_leftEigen;};
     double getRightEigen(){return m_rightEigen;};
     std::map<std::pair<int,int>,double> getIntegral(){return m_integral;};
     double getdx(){return m_dx;};
+    std::map<std::pair<int,int>,double> getFreedom(){return m_freedom;};
+    double getPos(){return m_pos;};
 
     
 
