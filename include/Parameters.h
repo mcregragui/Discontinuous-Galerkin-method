@@ -25,6 +25,8 @@ struct Parameters
 
     int method;
 
+    int adv;
+
     
 };
 

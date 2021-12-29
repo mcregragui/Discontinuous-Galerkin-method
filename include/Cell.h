@@ -2,6 +2,7 @@
 #define CELL_H
 
 #include "Parameters.h"
+#include <algorithm>
 
 
 
@@ -20,7 +21,7 @@ private:
 
     std::map<std::pair<int,int>,double> m_freedom;
 
-    std::map<int,double> m_integral;
+    std::map<std::pair<int,int>,double> m_integral;
 
     Parameters* m_param;
 
@@ -30,13 +31,20 @@ private:
 
     std::map<int,double> m_rightBorder;
 
+    double m_leftEigen;
+
+    double m_rightEigen;
+
+    double m_maxEigen;
 
 
 public:
-    Cell(/* args */);
+    Cell(int j, double dx);
     ~Cell();
 
     void positions();
+
+    void initial();
 
     void quadrature();
 
@@ -44,22 +52,28 @@ public:
 
     std::map<int,double> getFunction(double x);
 
+    std::map<int,double> getFU(std::map<int,double> sol);
+
     void borders();
 
     double getLegendre(int order, double x);
 
     double getCoff(int order);
 
+    void eigens();
+
+    std::map<int,double> getLeftBorder(){return m_leftBorder;};
+    std::map<int,double> getRightBorder(){return m_rightBorder;};
+    double getLeftEigen(){return m_leftEigen;};
+    double getRightEigen(){return m_rightEigen;};
+    std::map<std::pair<int,int>,double> getIntegral(){return m_integral;};
+    double getdx(){return m_dx;};
+
+    
+
 
 };
 
-Cell::Cell(/* args */)
-{
-}
-
-Cell::~Cell()
-{
-}
 
 
 
