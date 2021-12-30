@@ -14,7 +14,7 @@ private:
     Parameters* m_param;
 
 public:
-    Domain();
+    Domain(Parameters* param,Quadrature* quad);
     ~Domain();
 
     std::map<int, double> rightFlux(int i);

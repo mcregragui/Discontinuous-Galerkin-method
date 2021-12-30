@@ -1,13 +1,13 @@
 #include "include/Domain.h"
 
 
-Domain::Domain()
+Domain::Domain(Parameters* param,Quadrature* quad)
 {
+    m_param=param;
     m_nbCells=m_param->nbCells;
-
     for(int i=0;i<m_param->nbCells;i++)
     {
-        m_cells.push_back(new Cell(i,m_param->dx));
+        m_cells.push_back(new Cell(i,m_param->dx,param,quad));
     }
 };
 
@@ -136,18 +136,22 @@ std::map<int, double> Domain::rightFlux(int i)
 std::map<std::pair<int,int>,double> Domain::flux(int l)
 {
     std::map<std::pair<int,int>,double> flux;
-
+    
     std::map<int, double> rFlux=rightFlux(l);
-
+    
     std::map<int, double> lFlux=leftFlux(l);
-
+    
     for(int i=0;i<m_param->nbVar;i++)
     {
-        for(int j=0;j<m_param->Order;i++)
+        
+        for(int j=0;j<m_param->Order;j++)
         {
+            
             if(j==0)
             {
+                
                 flux[std::make_pair(i,j)]=rFlux[i]-lFlux[i];
+                //std::cout<<"flux 3"<<std::endl;
             }
             if(j==1)
             {
@@ -166,15 +170,19 @@ std::map<std::pair<int,int>,double> Domain::flux(int l)
 
 std::map<std::pair<int,int>,double> Domain::RHS(int l)
 {
+   
     std::map<std::pair<int,int>,double> rhs;
-
+    
     std::map<std::pair<int,int>,double> f=flux(l);
-
+    
     m_cells[l]->quadrature();
+   
     double dx=m_cells[l]->getdx();
+    
     for(int i=0;i<m_param->nbVar;i++)
     {
-        for(int j=0;j<m_param->Order;i++)
+        
+        for(int j=0;j<m_param->Order;j++)
         {
             if(j==0)
             {
@@ -183,10 +191,12 @@ std::map<std::pair<int,int>,double> Domain::RHS(int l)
             if(j==1)
             {
                 rhs[std::make_pair(i,j)]=-(0.5/dx)*f[std::make_pair(i,j)]+(1.0/(dx*dx))*m_cells[l]->getIntegral()[std::make_pair(i,j)];
+                //std::cout<<"integ1= "<<(1.0/(dx*dx))*m_cells[l]->getIntegral()[std::make_pair(i,j)]<<std::endl;
             }
             if(j==2)
             {
                 rhs[std::make_pair(i,j)]=-(1.0/(6*dx))*f[std::make_pair(i,j)]+(2.0/(dx*dx*dx))*m_cells[l]->getIntegral()[std::make_pair(i,j)];
+                //std::cout<<"integ2= "<<(2.0/(dx*dx*dx))*m_cells[l]->getIntegral()[std::make_pair(i,j)]<<std::endl;
             }
             
         }

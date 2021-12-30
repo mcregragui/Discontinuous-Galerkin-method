@@ -14,7 +14,7 @@ private:
     Parameters* m_param;
     Domain* m_domain;
 public:
-    TimeScheme();
+    TimeScheme(Parameters* param,Quadrature* quad);
     ~TimeScheme();
 
     void advance();

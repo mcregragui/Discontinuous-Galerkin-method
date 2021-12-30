@@ -7,6 +7,7 @@
 
 
 
+
 class Cell
 {
 private:
@@ -40,12 +41,14 @@ private:
 
 
 public:
-    Cell(int j, double dx);
+    Cell(int j, double dx,Parameters* param,Quadrature* quad);
     ~Cell();
 
     void positions();
 
     void initial();
+
+    std::map<int,double> getInit();
 
     void quadrature();
 
