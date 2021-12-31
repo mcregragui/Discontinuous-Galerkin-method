@@ -7,15 +7,15 @@ int main()
     Parameters* param=new Parameters();
 
     param->adv=1.0;
-    param->dt=0.0001;
-    param->dx=0.001;
-    param->end=50;
+    param->dt=0.01;
+    param->dx=0.1;
+    param->end=20;
     param->gamma=1.4;
-    param->nbVar=1;
+    param->nbVar=3;
     param->Order=3;
     param->RK=1;
     param->xmin=-5.0;
-    param->nbCells=10000;
+    param->nbCells=100;
     
 
     Quadrature* quad=new Quadrature();
@@ -38,5 +38,10 @@ int main()
     TimeScheme* time=new TimeScheme(param,quad);
     
     time->advances();
+
+
+    delete param;
+    delete quad;
+
     return 0;
 }

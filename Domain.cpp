@@ -7,7 +7,16 @@ Domain::Domain(Parameters* param,Quadrature* quad)
     m_nbCells=m_param->nbCells;
     for(int i=0;i<m_param->nbCells;i++)
     {
-        m_cells.push_back(new Cell(i,m_param->dx,param,quad));
+        if(i==0)
+        {
+            m_cells.push_back(new Cell(i,m_param->xmin,param,quad));
+        }
+        else
+        {
+            
+            m_cells.push_back(new Cell(i,m_cells[i-1]->getRightPos(),param,quad));
+        }
+        
     }
 };
 
@@ -175,7 +184,7 @@ std::map<std::pair<int,int>,double> Domain::RHS(int l)
     
     std::map<std::pair<int,int>,double> f=flux(l);
     
-    m_cells[l]->quadrature();
+    //m_cells[l]->quadrature();
    
     double dx=m_cells[l]->getdx();
     
@@ -191,12 +200,14 @@ std::map<std::pair<int,int>,double> Domain::RHS(int l)
             if(j==1)
             {
                 rhs[std::make_pair(i,j)]=-(0.5/dx)*f[std::make_pair(i,j)]+(1.0/(dx*dx))*m_cells[l]->getIntegral()[std::make_pair(i,j)];
+                //std::cout<<"p= "<<-(0.5/dx)*f[std::make_pair(i,j)]<<std::endl;
                 //std::cout<<"integ1= "<<(1.0/(dx*dx))*m_cells[l]->getIntegral()[std::make_pair(i,j)]<<std::endl;
             }
             if(j==2)
             {
-                rhs[std::make_pair(i,j)]=-(1.0/(6*dx))*f[std::make_pair(i,j)]+(2.0/(dx*dx*dx))*m_cells[l]->getIntegral()[std::make_pair(i,j)];
-                //std::cout<<"integ2= "<<(2.0/(dx*dx*dx))*m_cells[l]->getIntegral()[std::make_pair(i,j)]<<std::endl;
+                rhs[std::make_pair(i,j)]=-(1.0/(6.0*dx))*f[std::make_pair(i,j)]+(2.0/(dx*dx*dx))*m_cells[l]->getIntegral()[std::make_pair(i,j)];
+                // std::cout<<"p= "<<-(1.0/(6.0*dx))*f[std::make_pair(i,j)]<<std::endl;
+                // std::cout<<"integ2= "<<(2.0/(dx*dx*dx))*m_cells[l]->getIntegral()[std::make_pair(i,j)]<<std::endl;
             }
             
         }

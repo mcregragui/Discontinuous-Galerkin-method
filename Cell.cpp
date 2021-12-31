@@ -11,7 +11,8 @@ Cell::Cell(int j, double dx,Parameters* param,Quadrature* quad)
     m_param=param;
     m_quad=quad;
     m_j=j;
-    m_dx=dx;
+    m_leftPos=dx;
+    m_dx=m_param->dx;
 
     positions();
 
@@ -32,8 +33,8 @@ Cell::~Cell()
 //-------------------------------------------DETERMINE POSITIONS: LEFT, RIGHT, MIDPOINTS-------------------------
 void Cell::positions()
 {
-    m_rightPos=m_param->xmin+m_j*m_dx;
-    m_leftPos=m_rightPos+m_dx;
+    //m_leftPos=m_param->xmin+m_j*m_dx;
+    m_rightPos=m_leftPos+m_dx;
     m_pos=(m_rightPos+m_leftPos)/2.0;
 };
 //---------------------------------------------------------------------------------------------------------------
@@ -43,6 +44,7 @@ void Cell::initial()
 {
     assert(m_quad->Points.size()==m_quad->Weights.size());
     double h=(m_rightPos-m_leftPos)/2.0;
+    std::cout<<"h= "<<h<<std::endl;
     for(int i=0;i<m_param->nbVar;i++)
     {
         for(int j=0;j<m_param->Order;j++)
@@ -73,7 +75,7 @@ std::map<int,double> Cell::getInit()
             init[2]=1.0/(m_param->gamma-1.0);
 
         }
-        if(m_leftPos>=0)
+        else
         {
             init[0]=0.125;
             init[1]=0.0;
@@ -117,14 +119,13 @@ void Cell::quadrature()
 
         for(int i=0;i<m_param->nbVar;i++)
         {
-            for(int l=1;l<m_param->Order;l++)
+            
+            for(int j=0;j<m_quad->Points.size();j++)
             {
-                for(int j=0;j<m_quad->Points.size();j++)
-                {
-                  //  m_integral[std::make_pair(i,l)]+=m_quad->Weights[j]*getFunction(m_pos+h*m_quad->Points[j])[i];
-                }
-                m_integral[std::make_pair(i,l)]=h*m_integral[std::make_pair(i,l)];
+                m_integral[std::make_pair(i,1)]+=m_quad->Weights[j]*getFunction(m_pos+h*m_quad->Points[j])[i];
             }
+            m_integral[std::make_pair(i,1)]=h*m_integral[std::make_pair(i,1)];
+        
             
         }
     }
@@ -147,7 +148,7 @@ void Cell::quadrature()
         {
             for(int l=0;l<m_param->Order;l++)
             {
-                if(l==2)
+                if(l==1)
                 {
                     for(int j=0;j<m_quad->Points.size();j++)
                     {
@@ -155,7 +156,7 @@ void Cell::quadrature()
                     }
                     m_integral[std::make_pair(i,l)]=h*m_integral[std::make_pair(i,l)];
                 }
-                if(l==3)
+                if(l==2)
                 {
                     for(int j=0;j<m_quad->Points.size();j++)
                     {
@@ -188,8 +189,10 @@ std::map<int,double> Cell::getSolution(double x)
     {
         for(int j=0;j<m_param->Order;j++)
         {
-            sol[i]=+getCoff(j)*m_freedom[std::make_pair(i,j)]*getLegendre(j,x);
+            sol[i]=sol[i]+getCoff(j)*m_freedom[std::make_pair(i,j)]*getLegendre(j,x);
+            
         }
+       // std::cout<<"sol= "<<sol[i]<<std::endl;
     }
 
     return sol;
@@ -310,7 +313,7 @@ void Cell::borders()
         m_leftBorder[i]=0.0;
         m_rightBorder[i]=0.0;
     }
-    if(m_param->nbVar==1)
+    if(m_param->Order==1)
     {
         for(int i=0;i<m_param->nbVar;i++)
         {
@@ -318,20 +321,20 @@ void Cell::borders()
             m_rightBorder[i]=m_freedom[std::make_pair(i,0)];
         }
     }
-    if(m_param->nbVar==2)
+    if(m_param->Order==2)
     {
         for(int i=0;i<m_param->nbVar;i++)
         {
-            m_leftBorder[i]=m_freedom[std::make_pair(i,0)]-6*m_freedom[std::make_pair(i,1)];
-            m_rightBorder[i]=m_freedom[std::make_pair(i,0)]+6*m_freedom[std::make_pair(i,1)];
+            m_leftBorder[i]=m_freedom[std::make_pair(i,0)]-6.0*m_freedom[std::make_pair(i,1)];
+            m_rightBorder[i]=m_freedom[std::make_pair(i,0)]+6.0*m_freedom[std::make_pair(i,1)];
         }
     }
-    if(m_param->nbVar==3)
+    if(m_param->Order==3)
     {
         for(int i=0;i<m_param->nbVar;i++)
         {
-            m_leftBorder[i]=m_freedom[std::make_pair(i,0)]-6*m_freedom[std::make_pair(i,1)]+30*m_freedom[std::make_pair(i,2)];
-            m_rightBorder[i]=m_freedom[std::make_pair(i,0)]+6*m_freedom[std::make_pair(i,1)]+30*m_freedom[std::make_pair(i,2)];
+            m_leftBorder[i]=m_freedom[std::make_pair(i,0)]-6.0*m_freedom[std::make_pair(i,1)]+30.0*m_freedom[std::make_pair(i,2)];
+            m_rightBorder[i]=m_freedom[std::make_pair(i,0)]+6.0*m_freedom[std::make_pair(i,1)]+30.0*m_freedom[std::make_pair(i,2)];
         }
     }
     
@@ -360,8 +363,8 @@ void Cell::eigens()
         //--------------------------------------------------Left----------------------
         std::map<int,double> sol0=getSolution(m_leftPos);
         u=sol0[1]/sol0[0];
-        p=(m_param->gamma-1.0)*(sol0[2]-0.5*sol0[1]*sol0[1]/sol0[0]);
-        c=sqrt(m_param->gamma*p/sol0[0]);
+        p=fabs((m_param->gamma-1.0)*(sol0[2]-0.5*sol0[1]*sol0[1]/sol0[0]));
+        c=sqrt(fabs(m_param->gamma*p/sol0[0]));
        // std::cout<<"c= "<<c<<std::endl;
         max=std::max(fabs(u),fabs(u-c));
         m_leftEigen=std::max(max,fabs(u+c));
@@ -370,8 +373,12 @@ void Cell::eigens()
 
         sol0=getSolution(m_rightPos);
         u=sol0[1]/sol0[0];
-        p=(m_param->gamma-1.0)*(sol0[2]-0.5*sol0[1]*sol0[1]/sol0[0]);
-        c=sqrt(m_param->gamma*p/sol0[0]);
+       // std::cout<<"u= "<<u<<std::endl;
+        p=((m_param->gamma-1.0)*(sol0[2]-0.5*sol0[1]*sol0[1]/sol0[0]));
+       // std::cout<<"p= "<<p<<std::endl;
+       // std::cout<<"rho= "<<sol0[0]<<std::endl;
+        c=sqrt(fabs(m_param->gamma*p/sol0[0]));
+       // std::cout<<"c= "<<c<<std::endl;
         //std::cout<<"c= "<<c<<std::endl;
         max=std::max(fabs(u),fabs(u-c));
         m_rightEigen=std::max(max,fabs(u+c));
@@ -379,5 +386,6 @@ void Cell::eigens()
         //---------------------------------------------------Max eigen---------------------------------
 
         m_maxEigen=std::max(fabs(m_rightEigen),fabs(m_leftEigen));
+       // std::cout<<"eigen= "<<m_maxEigen<<std::endl;
     }
 }

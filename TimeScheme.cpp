@@ -16,35 +16,123 @@ TimeScheme::~TimeScheme()
 void TimeScheme::advance()
 {
     
-    std::map<std::pair<int,int>,double> freedom0;
-    std::map<std::pair<int,int>,double> freedom1;
-    std::map<std::pair<int,int>,double> freedom2;
+    
     for(int l=0;l<m_domain->getCells().size();l++)
     {
+        m_domain->getCells()[l]->quadrature();
         m_domain->getCells()[l]->borders();
         m_domain->getCells()[l]->eigens();
     }
+    std::map<std::pair<int, int>, double> RHS;
     if(m_param->RK==1)
     {
-        
+        std::map<std::pair<int,int>,double> freedom0;
+        std::vector<std::map<std::pair<int,int>,double>> freedom1;
+        std::map<std::pair<int,int>,std::vector<double>> freedom2;
         for(int l=0;l<m_domain->getCells().size();l++)
         {
-            
+            RHS=m_domain->RHS(l);
             for(int i=0;i<m_param->nbVar;i++)
             {
                 
                 for(int j=0;j<m_param->Order;j++)
                 {
                     
-                    freedom0[std::make_pair(i,j)]=m_domain->getCells()[l]->getFreedom()[std::make_pair(i,j)]+m_param->dt*m_domain->RHS(l)[std::make_pair(i,j)];
+                    freedom0[std::make_pair(i,j)]=m_domain->getCells()[l]->getFreedom()[std::make_pair(i,j)]+m_param->dt*RHS[std::make_pair(i,j)];
                 }
+
+                freedom1.push_back(freedom0);
+                freedom0.clear();
                 
             }
             
-            m_domain->getCells()[l]->updateFreedom(freedom0);
+            
            
         } 
+        for(int l=0;l<m_domain->getCells().size();l++)
+        {
+            m_domain->getCells()[l]->updateFreedom(freedom1[l]);
+        }
+
+        freedom0.clear();
+
+        freedom1.clear();
         
+    }
+    if(m_param->RK==2)
+    {
+        std::map<std::pair<int,int>,double> freedom;
+        std::vector<std::map<std::pair<int,int>,double>> freedomb;
+        std::map<std::pair<int,int>,double> freedom0;
+        std::vector<std::map<std::pair<int,int>,double>> freedom1;
+        std::map<std::pair<int,int>,double> freedom2;
+        std::vector<std::map<std::pair<int,int>,double>> freedom3;
+
+        for(int l=0;l<m_domain->getCells().size();l++)
+        {
+            for(int i=0;i<m_param->nbVar;i++)
+            {
+                
+                for(int j=0;j<m_param->Order;j++)
+                {
+                    
+                    freedom[std::make_pair(i,j)]=m_domain->getCells()[l]->getFreedom()[std::make_pair(i,j)];
+                }
+
+                freedomb.push_back(freedom);
+
+                freedom.clear();
+                
+            }
+        }
+
+        for(int l=0;l<m_domain->getCells().size();l++)
+        {
+            RHS=m_domain->RHS(l);
+            for(int i=0;i<m_param->nbVar;i++)
+            {
+                
+                for(int j=0;j<m_param->Order;j++)
+                {
+                    
+                    freedom0[std::make_pair(i,j)]=m_domain->getCells()[l]->getFreedom()[std::make_pair(i,j)]+m_param->dt*RHS[std::make_pair(i,j)];
+                }
+
+                freedom1.push_back(freedom0);
+
+                freedom0.clear();
+                
+            }
+        }
+
+        for(int l=0;l<m_domain->getCells().size();l++)
+        {
+            m_domain->getCells()[l]->updateFreedom(freedom1[l]);
+        }    
+
+        for(int l=0;l<m_domain->getCells().size();l++)
+        {
+            RHS=m_domain->RHS(l);
+            for(int i=0;i<m_param->nbVar;i++)
+            {
+                
+                for(int j=0;j<m_param->Order;j++)
+                {
+                    
+                    freedom2[std::make_pair(i,j)]=freedomb[l][std::make_pair(i,j)]+m_param->dt*RHS[std::make_pair(i,j)];
+                }
+
+                freedom3.push_back(freedom2);
+
+                freedom0.clear();
+                
+            }
+        }
+
+        for(int l=0;l<m_domain->getCells().size();l++)
+        {
+            m_domain->getCells()[l]->updateFreedom(freedom3[l]);
+        }    
     }
    
     /*if(m_param->RK==2)

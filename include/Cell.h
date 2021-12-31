@@ -76,6 +76,7 @@ public:
     double getdx(){return m_dx;};
     std::map<std::pair<int,int>,double> getFreedom(){return m_freedom;};
     double getPos(){return m_pos;};
+    double getRightPos(){return m_rightPos;};
 
     
 
