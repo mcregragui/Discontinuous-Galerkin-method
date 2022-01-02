@@ -27,6 +27,8 @@ public:
 
     std::vector<Cell*> getCells(){return m_cells;};
 
+    void minmod(int cell);
+
 
 };
 

@@ -23,6 +23,8 @@ private:
 
     std::map<std::pair<int,int>,double> m_freedom;
 
+    std::map<std::pair<int,int>,double>m_temp;
+
     std::map<std::pair<int,int>,double> m_integral;
 
     Parameters* m_param;
@@ -38,6 +40,8 @@ private:
     double m_rightEigen;
 
     double m_maxEigen;
+
+
 
 
 public:
@@ -66,7 +70,7 @@ public:
 
     void eigens();
 
-    void updateFreedom(std::map<std::pair<int,int>,double> freedom){m_freedom=freedom;};
+    void updateFreedom();
 
     std::map<int,double> getLeftBorder(){return m_leftBorder;};
     std::map<int,double> getRightBorder(){return m_rightBorder;};
@@ -77,6 +81,8 @@ public:
     std::map<std::pair<int,int>,double> getFreedom(){return m_freedom;};
     double getPos(){return m_pos;};
     double getRightPos(){return m_rightPos;};
+    void updateFree(std::map<std::pair<int,int>,double> freedom){m_freedom=freedom;};
+    void updateTemp(std::map<std::pair<int,int>,double> temp){m_temp=temp;};;
 
     
 

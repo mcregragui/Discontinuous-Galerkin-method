@@ -7,13 +7,13 @@ int main()
     Parameters* param=new Parameters();
 
     param->adv=1.0;
-    param->dt=0.01;
+    param->dt=0.001;
     param->dx=0.1;
-    param->end=20;
+    param->end=2000;
     param->gamma=1.4;
     param->nbVar=3;
     param->Order=3;
-    param->RK=1;
+    param->RK=2;
     param->xmin=-5.0;
     param->nbCells=100;
     

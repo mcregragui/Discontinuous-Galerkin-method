@@ -13,7 +13,8 @@ Cell::Cell(int j, double dx,Parameters* param,Quadrature* quad)
     m_j=j;
     m_leftPos=dx;
     m_dx=m_param->dx;
-
+    m_freedom.clear();
+    m_temp.clear();
     positions();
 
     initial();
@@ -22,7 +23,7 @@ Cell::Cell(int j, double dx,Parameters* param,Quadrature* quad)
 
 Cell::~Cell()
 {
-    delete m_param;
+   delete m_param;
 };
 
 
@@ -33,7 +34,7 @@ Cell::~Cell()
 //-------------------------------------------DETERMINE POSITIONS: LEFT, RIGHT, MIDPOINTS-------------------------
 void Cell::positions()
 {
-    //m_leftPos=m_param->xmin+m_j*m_dx;
+ 
     m_rightPos=m_leftPos+m_dx;
     m_pos=(m_rightPos+m_leftPos)/2.0;
 };
@@ -44,7 +45,15 @@ void Cell::initial()
 {
     assert(m_quad->Points.size()==m_quad->Weights.size());
     double h=(m_rightPos-m_leftPos)/2.0;
-    std::cout<<"h= "<<h<<std::endl;
+  
+    for(int i=0;i<m_param->nbVar;i++)
+    {
+        for(int j=0;j<m_param->Order;j++)
+        {
+            m_freedom[std::make_pair(i,j)]=0.0;
+        }
+    }
+
     for(int i=0;i<m_param->nbVar;i++)
     {
         for(int j=0;j<m_param->Order;j++)
@@ -54,9 +63,10 @@ void Cell::initial()
                 m_freedom[std::make_pair(i,j)]+=m_quad->Weights[l]*getInit()[i]*getLegendre(j,m_pos+h*m_quad->Points[l]);
             }
             m_freedom[std::make_pair(i,j)]=(h/pow(m_dx,j+1))*m_freedom[std::make_pair(i,j)];
+          
         }
     }
-}
+};
 
 std::map<int,double> Cell::getInit()
 {
@@ -68,7 +78,7 @@ std::map<int,double> Cell::getInit()
     }
     if(m_param->nbVar==3)
     {
-        if(m_rightPos<=0)
+        if(m_rightPos<=0.0)
         {
             init[0]=1.0;
             init[1]=0.0;
@@ -84,7 +94,7 @@ std::map<int,double> Cell::getInit()
 
         return init;
     }
-}
+};
 //---------------------------------------------------------------------------------------------------------------
 
 //-------------------------------------------QUADRATURE-----------------------------------------------------------
@@ -155,6 +165,7 @@ void Cell::quadrature()
                         m_integral[std::make_pair(i,l)]+=m_quad->Weights[j]*getFunction(m_pos+h*m_quad->Points[j])[i];
                     }
                     m_integral[std::make_pair(i,l)]=h*m_integral[std::make_pair(i,l)];
+                    
                 }
                 if(l==2)
                 {
@@ -163,6 +174,7 @@ void Cell::quadrature()
                         m_integral[std::make_pair(i,l)]+=m_quad->Weights[j]*getFunction(m_pos+h*m_quad->Points[j])[i]*getLegendre(1,m_pos+h*m_quad->Points[j]);
                     }
                     m_integral[std::make_pair(i,l)]=h*m_integral[std::make_pair(i,l)];
+                  
                 }
             
             }
@@ -192,9 +204,9 @@ std::map<int,double> Cell::getSolution(double x)
             sol[i]=sol[i]+getCoff(j)*m_freedom[std::make_pair(i,j)]*getLegendre(j,x);
             
         }
-       // std::cout<<"sol= "<<sol[i]<<std::endl;
+        
     }
-
+ 
     return sol;
 };
 
@@ -219,7 +231,6 @@ std::map<int,double> Cell::getFunction(double x)
         p=(m_param->gamma-1.0)*(sol0[2]-0.5*sol0[1]*sol0[1]/sol0[0]);
 
         sol[0]=sol0[1];
-
         sol[1]=sol0[1]*sol0[1]/sol0[0]+p;
 
         sol[2]=sol0[1]*(sol0[2]+p)/sol0[0];
@@ -243,7 +254,7 @@ std::map<int,double> Cell::getFU(std::map<int,double> sol0)
         p=(m_param->gamma-1.0)*(sol0[2]-0.5*sol0[1]*sol0[1]/sol0[0]);
 
         sol[0]=sol0[1];
-
+        //std::cout<<"sol01= "<<sol[0]<<std::endl;
         sol[1]=sol0[1]*sol0[1]/sol0[0]+p;
 
         sol[2]=sol0[1]*(sol0[2]+p)/sol0[0];
@@ -261,20 +272,18 @@ std::map<int,double> Cell::getFU(std::map<int,double> sol0)
 
 double Cell::getLegendre(int order, double x)
 {
-    switch (order)
-    {
-    case 0:
-        return 1.0;
-    
-    case 1:
-        return x-m_pos;
 
-    case 2:
+    if(order==0)
+    {
+        return 1.0;
+    }
+    if(order==1)
+    {
+        return x-m_pos;
+    }
+    if(order==2)
+    {
         return (x-m_pos)*(x-m_pos)-(1.0/12.0)*m_dx*m_dx;
-    
-    default:
-        std::cout<<"higher ordre is not available, you want to compute the ordre: "<<order<<std::endl; 
-        break;
     }
 };
 //------------------------------------------------------------------------------------------------------------
@@ -283,20 +292,17 @@ double Cell::getLegendre(int order, double x)
 
 double Cell::getCoff(int order)
 {
-    switch (order)
+    if(order==0)
     {
-    case 0:
         return 1.0;
-    
-    case 1:
+    }
+    if(order==1)
+    {
         return 12.0/m_dx;
-
-    case 2:
+    }
+    if(order==2)
+    {
         return 180.0/(m_dx*m_dx);
-    
-    default:
-        std::cout<<"higher ordre is not available, you want to compute the ordre: "<<order<<std::endl;
-        break;
     }
 };
 
@@ -339,7 +345,7 @@ void Cell::borders()
     }
     
     
-}
+};
 //---------------------------------------------------------------------------------------------------------------------
 
 
@@ -356,36 +362,51 @@ void Cell::eigens()
     }
     if(m_param->nbVar==3)
     {
+        m_leftEigen=0.0;
+        m_rightEigen=0.0;
+        m_maxEigen=0.0;
+
+
         double u=0.0;
         double c=0.0;
         double p=0.0;
         double max=0.0;
         //--------------------------------------------------Left----------------------
         std::map<int,double> sol0=getSolution(m_leftPos);
+        
         u=sol0[1]/sol0[0];
+        
         p=fabs((m_param->gamma-1.0)*(sol0[2]-0.5*sol0[1]*sol0[1]/sol0[0]));
+        
         c=sqrt(fabs(m_param->gamma*p/sol0[0]));
+        
        // std::cout<<"c= "<<c<<std::endl;
         max=std::max(fabs(u),fabs(u-c));
         m_leftEigen=std::max(max,fabs(u+c));
-
+        
         //--------------------------------------------------Right-------------------------
 
         sol0=getSolution(m_rightPos);
+        
         u=sol0[1]/sol0[0];
-       // std::cout<<"u= "<<u<<std::endl;
+      
         p=((m_param->gamma-1.0)*(sol0[2]-0.5*sol0[1]*sol0[1]/sol0[0]));
-       // std::cout<<"p= "<<p<<std::endl;
-       // std::cout<<"rho= "<<sol0[0]<<std::endl;
+      
         c=sqrt(fabs(m_param->gamma*p/sol0[0]));
-       // std::cout<<"c= "<<c<<std::endl;
-        //std::cout<<"c= "<<c<<std::endl;
+       
         max=std::max(fabs(u),fabs(u-c));
         m_rightEigen=std::max(max,fabs(u+c));
-
+        
         //---------------------------------------------------Max eigen---------------------------------
 
         m_maxEigen=std::max(fabs(m_rightEigen),fabs(m_leftEigen));
-       // std::cout<<"eigen= "<<m_maxEigen<<std::endl;
+        
     }
-}
+};
+
+void Cell::updateFreedom()
+{
+    m_freedom=m_temp;
+
+    m_temp.clear();
+};
