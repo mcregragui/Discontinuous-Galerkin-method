@@ -82,9 +82,9 @@ public:
     double getPos(){return m_pos;};
     double getRightPos(){return m_rightPos;};
     void updateFree(std::map<std::pair<int,int>,double> freedom){m_freedom=freedom;};
-    void updateTemp(std::map<std::pair<int,int>,double> temp){m_temp=temp;};;
+    void updateTemp(std::map<std::pair<int,int>,double> temp){m_temp=temp;};
 
-    
+    void updateMod(int i, int j, double a){m_freedom[std::make_pair(i,j)]=a;};
 
 
 };

@@ -16,7 +16,8 @@ TimeScheme::~TimeScheme()
 void TimeScheme::advance()
 {
     
-    
+    m_domain->minmod();
+    m_domain->updateMod();
     for(int l=0;l<m_nb;l++)
     {
         m_domain->getCells()[l]->quadrature();
@@ -39,19 +40,8 @@ void TimeScheme::advance()
                 {
                     
                     freedom0[std::make_pair(i,j)]=m_domain->getCells()[l]->getFreedom()[std::make_pair(i,j)]+m_param->dt*RHS[std::make_pair(i,j)];
-                   /* if(i==0)
-                    {
-                        std::cout<<"pf0= "<<freedom0[std::make_pair(i,j)]<<std::endl;
-                    }*/
                     
                 }
-               /* if(i==0)
-                {
-                    std::cout<<"pf2= "<<freedom0[std::make_pair(0,0)]<<std::endl; 
-                }*/
-                   
-                
-                
             }
             m_domain->getCells()[l]->updateTemp(freedom0);
                 //freedom1.push_back(freedom0);
@@ -85,8 +75,7 @@ void TimeScheme::advance()
             {
                 
                 for(int j=0;j<m_param->Order;j++)
-                {
-                    
+                {                    
                     freedom[std::make_pair(i,j)]=m_domain->getCells()[l]->getFreedom()[std::make_pair(i,j)];
                 }
 
@@ -133,7 +122,7 @@ void TimeScheme::advance()
                 for(int j=0;j<m_param->Order;j++)
                 {
                     
-                    freedom2[std::make_pair(i,j)]=freedomb[l][std::make_pair(i,j)]+m_param->dt*RHS[std::make_pair(i,j)];
+                    freedom2[std::make_pair(i,j)]=0.5*freedomb[l][std::make_pair(i,j)]+0.5*freedom1[l][std::make_pair(i,j)]+0.5*m_param->dt*RHS[std::make_pair(i,j)];
                 }      
             }
             freedom3.push_back(freedom2);
@@ -145,6 +134,100 @@ void TimeScheme::advance()
         {
             m_domain->getCells()[l]->updateFree(freedom3[l]);
         }    
+    }
+    if(m_param->RK==3)
+    {
+        std::map<std::pair<int,int>,double> freedom;
+        std::vector<std::map<std::pair<int,int>,double>> freedomb;
+        std::map<std::pair<int,int>,double> freedom0;
+        std::vector<std::map<std::pair<int,int>,double>> freedom1;
+        std::map<std::pair<int,int>,double> freedom2;
+        std::vector<std::map<std::pair<int,int>,double>> freedom3;
+        std::map<std::pair<int,int>,double> freedom4;
+        std::vector<std::map<std::pair<int,int>,double>> freedom5;
+
+        for(int l=0;l<m_domain->getCells().size();l++)
+        {
+            for(int i=0;i<m_param->nbVar;i++)
+            {
+                
+                for(int j=0;j<m_param->Order;j++)
+                {                    
+                    freedom[std::make_pair(i,j)]=m_domain->getCells()[l]->getFreedom()[std::make_pair(i,j)];
+                }
+
+                
+                
+            }
+            freedomb.push_back(freedom);
+
+            freedom.clear();
+        }
+
+        for(int l=0;l<m_domain->getCells().size();l++)
+        {
+            RHS=m_domain->RHS(l);
+            for(int i=0;i<m_param->nbVar;i++)
+            {
+                
+                for(int j=0;j<m_param->Order;j++)
+                {
+                    
+                    freedom0[std::make_pair(i,j)]=m_domain->getCells()[l]->getFreedom()[std::make_pair(i,j)]+m_param->dt*RHS[std::make_pair(i,j)];
+                }
+
+                
+                
+            }
+            freedom1.push_back(freedom0);
+
+            freedom0.clear();
+            RHS.clear();
+        }
+
+        for(int l=0;l<m_domain->getCells().size();l++)
+        {
+            m_domain->getCells()[l]->updateFree(freedom1[l]);
+        }    
+
+        for(int l=0;l<m_domain->getCells().size();l++)
+        {
+            RHS=m_domain->RHS(l);
+            for(int i=0;i<m_param->nbVar;i++)
+            {
+                
+                for(int j=0;j<m_param->Order;j++)
+                {
+                    
+                    freedom2[std::make_pair(i,j)]=(3.0/4.0)*freedomb[l][std::make_pair(i,j)]+0.25*freedom1[l][std::make_pair(i,j)]+0.25*m_param->dt*RHS[std::make_pair(i,j)];
+                }      
+            }
+            freedom3.push_back(freedom2);
+
+            freedom2.clear();
+        }
+
+        for(int l=0;l<m_domain->getCells().size();l++)
+        {
+            m_domain->getCells()[l]->updateFree(freedom3[l]);
+        }    
+        for(int l=0;l<m_domain->getCells().size();l++)
+        {
+            RHS=m_domain->RHS(l);
+            for(int i=0;i<m_param->nbVar;i++)
+            {
+                for(int j=0;j<m_param->Order;j++)
+                {
+                    freedom4[std::make_pair(i,j)]=(1.0/3.0)*freedomb[l][std::make_pair(i,j)]+(2.0/3.0)*freedom3[l][std::make_pair(i,j)]+(2.0/3.0)*m_param->dt*RHS[std::make_pair(i,j)];
+                }
+            }
+            freedom5.push_back(freedom4);
+            freedom4.clear();
+        }
+        for(int l=0;l<m_domain->getCells().size();l++)
+        {
+            m_domain->getCells()[l]->updateFree(freedom5[l]);
+        }  
     }
 };
 
@@ -165,7 +248,7 @@ void TimeScheme::advances()
 void TimeScheme::saveSol()
 {
     std::ofstream myfile;
-    myfile.open ("sol.txt");
+    myfile.open ("solMinmod.txt");
 
     double a=0.0;
     double rho=0.0;

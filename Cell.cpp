@@ -73,7 +73,19 @@ std::map<int,double> Cell::getInit()
     std::map<int,double> init;
     if(m_param->nbVar==1)
     {
-        init[0]=cos(m_pos);
+        //init[0]=cos(m_pos);
+        if(m_rightPos<=0.0)
+        {
+            init[0]=0.5;
+        }
+        else if(0<m_leftPos&&m_rightPos<2.0)
+        {
+            init[0]=3;
+        }
+        else
+        {
+            init[0]=0.5;
+        }
         return init;
     }
     if(m_param->nbVar==3)

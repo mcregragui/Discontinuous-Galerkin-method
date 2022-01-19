@@ -13,7 +13,7 @@ int main()
     param->gamma=1.4;
     param->nbVar=3;
     param->Order=3;
-    param->RK=2;
+    param->RK=3;
     param->xmin=-5.0;
     param->nbCells=100;
     

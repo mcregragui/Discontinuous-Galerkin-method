@@ -11,6 +11,10 @@ private:
 
     std::vector<Cell*> m_cells;
 
+    std::map<std::pair<int,int>, double> m_rightBorderMod;
+
+    std::map<std::pair<int,int>, double> m_leftBorderMod;
+
     Parameters* m_param;
 
 public:
@@ -27,7 +31,24 @@ public:
 
     std::vector<Cell*> getCells(){return m_cells;};
 
-    void minmod(int cell);
+    void minmod();
+
+    double mimod(double a, double b, double c);
+
+    std::map<int,double> getLeftBorderMinmod(int cell);
+
+    std::map<int,double> getRightBorderMinmod(int cell);
+
+    void updateMod();
+
+    //Characteristic projection
+
+    std::vector<double> lEigenvector(int i);
+
+    std::vector<double> rEigenvector(int i);
+
+    double Project(std::map<int,double>, int p);
+
 
 
 };
