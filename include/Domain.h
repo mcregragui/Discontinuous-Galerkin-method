@@ -15,6 +15,34 @@ private:
 
     std::map<std::pair<int,int>, double> m_leftBorderMod;
 
+    std::map<std::pair<int,int>, double> m_rightBorderCharc;
+
+    std::map<std::pair<int,int>, double> m_leftBorderCharc;
+
+    std::map<std::pair<int,int>, double> m_rightBorderTrue;
+
+    std::map<std::pair<int,int>, double> m_leftBorderTrue;
+
+    
+    std::map<std::pair<int,int>, double> m_freeCharc;
+
+    std::map<std::pair<int,int>, double> m_freeLeftCharc;
+    std::map<std::pair<int,int>, double> m_freeRightCharc;
+    std::map<std::pair<int,int>,std::vector<double>> m_leftEigen;
+
+    
+    std::map<std::pair<int,int>,double> m_leftEigenVal;
+
+    std::map<std::pair<int,int>,std::vector<double>> m_EigenLeft;
+    std::map<std::pair<int,int>,std::vector<double>> m_EigenRight;
+    std::map<int,std::vector<double>> m_EigenValLeft;
+    std::map<int,std::vector<double>> m_EigenValRight;
+    std::map<std::pair<int,int>,std::vector<double>> m_invEigenRight;
+    std::map<std::pair<int,int>,std::vector<double>> m_invEigenLeft;
+    std::map<std::pair<int,int>,std::vector<double>> m_rightEigen;
+    
+    std::map<std::pair<int,int>,double> m_rightEigenVal;
+
     Parameters* m_param;
 
 public:
@@ -33,6 +61,8 @@ public:
 
     void minmod();
 
+    void minmodCharc();
+
     double mimod(double a, double b, double c);
 
     std::map<int,double> getLeftBorderMinmod(int cell);
@@ -43,13 +73,24 @@ public:
 
     //Characteristic projection
 
-    std::vector<double> lEigenvector(int i);
+    void Eigenvector();
 
-    std::vector<double> rEigenvector(int i);
+   // void rEigenvector();
 
     double Project(std::map<int,double>, int p);
 
+    std::map<int,double> getLeftBorderCharc(int cell);
 
+    std::map<int,double> getRightBorderCharc(int cell);
+
+    std::map<int, double> rightFluxCharc(int i);
+
+    std::map<int, double> leftFluxCharc(int i);
+
+    void updateCharc();
+
+    double project(std::vector<double> eigen, std::vector<double> v);
+    double projectLeft(int cell, int i, std::vector<double> eigen, std::vector<double> v);
 
 };
 

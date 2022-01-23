@@ -48,6 +48,17 @@ std::vector<T>  operator *(S const a, std::vector<T> const &v)
 	return res;
 };
 
+template <typename T>
+double  operator *(std::vector<T> const &u, std::vector<T> const &v)
+{
+	int size = (int)v.size();
+	//std::vector<T> res(size, 0);
+	double res;
+	for (int i = 0; i < size; i++)
+		res += u[i]*v[i];
+
+	return res;
+};
 
 template<typename T>
 std::vector<T> operator *(std::vector<std::vector<T>>& A, std::vector<T>& b)

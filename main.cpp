@@ -4,6 +4,7 @@
 
 int main()
 {
+
     Parameters* param=new Parameters();
 
     param->adv=1.0;

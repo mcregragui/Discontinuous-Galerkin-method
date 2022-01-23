@@ -12,11 +12,22 @@ Domain::Domain(Parameters* param,Quadrature* quad)
             m_cells.push_back(new Cell(i,m_param->xmin,param,quad));
         }
         else
-        {
-            
+        {            
             m_cells.push_back(new Cell(i,m_cells[i-1]->getRightPos(),param,quad));
         }
-        
+        for(int j=0;j<m_param->nbVar;j++)
+        {
+            m_EigenLeft[std::make_pair(i,j)]={0.0,0.0,0.0};
+            m_EigenRight[std::make_pair(i,j)]={0.0,0.0,0.0};
+            
+            m_invEigenRight[std::make_pair(i,j)]={0.0,0.0,0.0};
+            m_invEigenLeft[std::make_pair(i,j)]={0.0,0.0,0.0};
+            m_rightEigen[std::make_pair(i,j)]={0.0,0.0,0.0};
+            m_leftEigen[std::make_pair(i,j)]={0.0,0.0,0.0};
+        }
+
+        m_EigenValLeft[i]={0.0,0.0,0.0};
+        m_EigenValRight[i]={0.0,0.0,0.0};        
     }
 };
 
@@ -66,7 +77,7 @@ std::map<int, double> Domain::leftFlux(int i)
             double lambda1=m_cells[i-1]->getRightEigen();
             double lambda2=m_cells[i]->getLeftEigen();
             double lambda=std::max(lambda1,lambda2);
-           
+            
             double fLeft=m_cells[i-1]->getFU(getRightBorderMinmod(i-1))[0];
             double fRight=m_cells[i]->getFU(getLeftBorderMinmod(i))[0];
           
@@ -130,7 +141,7 @@ std::map<int, double> Domain::rightFlux(int i)
             double lambda1=m_cells[i]->getRightEigen();
             double lambda2=m_cells[i+1]->getLeftEigen();
             double lambda=std::max(lambda1,lambda2);
-          
+            
             double fLeft=m_cells[i]->getFU(getRightBorderMinmod(i))[0];
             double fRight=m_cells[i+1]->getFU(getLeftBorderMinmod(i+1))[0];
             double left=getRightBorderMinmod(i)[0];
@@ -156,11 +167,14 @@ std::map<int, double> Domain::rightFlux(int i)
 
 std::map<std::pair<int,int>,double> Domain::flux(int l)
 {
+   
     std::map<std::pair<int,int>,double> flux;
+    std::map<int, double> lFlux;
+    std::map<int, double> rFlux=rightFluxCharc(l);
+    lFlux=leftFluxCharc(l);
     
-    std::map<int, double> rFlux=rightFlux(l);
+    //std::map<int, double> 
     
-    std::map<int, double> lFlux=leftFlux(l);
     for(int i=0;i<m_param->nbVar;i++)
     {
         
@@ -181,15 +195,17 @@ std::map<std::pair<int,int>,double> Domain::flux(int l)
             {
                 
                 flux[std::make_pair(i,j)]=rFlux[i]-lFlux[i];
-              
+                //std::cout<<"flux0= "<<flux[std::make_pair(i,j)]<<std::endl;
             }
             if(j==1)
             {
                 flux[std::make_pair(i,j)]=rFlux[i]+lFlux[i];
+              //  std::cout<<"flux1= "<<flux[std::make_pair(i,j)]<<std::endl;
             }
             if(j==2)
             {
                 flux[std::make_pair(i,j)]=rFlux[i]-lFlux[i];
+               // std::cout<<"flux2= "<<rFlux[i]<<std::endl;
             }       
         }
     }
@@ -253,7 +269,7 @@ void Domain::minmod()
         {
             key=std::make_pair(cell,j);
             left= -m_cells[cell]->getLeftBorder()[j]+m_cells[cell]->getFreedom()[std::make_pair(j,0)];
-   
+            
             right=m_cells[cell]->getRightBorder()[j]-m_cells[cell]->getFreedom()[std::make_pair(j,0)];
             
             if(cell==0)
@@ -261,16 +277,14 @@ void Domain::minmod()
             
                 deltaPlus=m_cells[cell+1]->getFreedom()[std::make_pair(j,0)]-m_cells[cell]->getFreedom()[std::make_pair(j,0)];
                 deltaMinus=0.0;
-            //  Minmod[0]=m_cells[cell]->getFreedom()[std::make_pair(j,0)]-left;
-            //  Minmod[1]=m_cells[cell]->getFreedom()[std::make_pair(j,0)]+right;
+            
             }
             else if(cell==m_nbCells-1)
             {
                 
                 deltaPlus=0.0;
                 deltaMinus=m_cells[cell]->getFreedom()[std::make_pair(j,0)]-m_cells[cell-1]->getFreedom()[std::make_pair(j,0)];
-            // Minmod[0]=m_cells[cell]->getFreedom()[std::make_pair(j,0)]-left;
-            // Minmod[1]=m_cells[cell]->getFreedom()[std::make_pair(j,0)]+right;
+            
             }
             else
             {
@@ -288,29 +302,17 @@ void Domain::minmod()
         }
         
     }
-    
-    //std::cout<<"plus= "<<deltaPlus<<std::endl;
-    //std::cout<<"minus= "<<deltaMinus<<std::endl;
-    
-    
-    //std::cout<<"minmod_0= "<<Minmod[0]<<std::endl;
-    //std::cout<<"minmod_1= "<<Minmod[1]<<std::endl;
-    //Minmod[0]=m_cells[cell]->getFreedom()[std::make_pair(j,0)]-mimod(left,deltaPlus,deltaMinus);
-    //Minmod[1]=m_cells[cell]->getFreedom()[std::make_pair(j,0)]+mimod(right,deltaPlus,deltaMinus);
-    //return Minmod;
 };
 
 double Domain::mimod(double a, double b, double c)
 {
-   double M=0.5;
+    double M=0.01;
     if(fabs(a)<=M*m_param->dx*m_param->dx)
     {
-        //std::cout<<"enter 0"<<std::endl;
         return a;
     }
     else if(a*b>0 && a*c>0)
     {
-        //std::cout<<"enter 1"<<std::endl;
         if(a>=0)
         {
             return std::min({fabs(a),fabs(b),fabs(c)});
@@ -318,13 +320,14 @@ double Domain::mimod(double a, double b, double c)
         else
         {
             return -1.0*std::min({fabs(a),fabs(b),fabs(c)});
-        }
+        }        
     }
     else
     {
         //std::cout<<"enter 2"<<std::endl;
         return 0.0;
     }
+  
 };
 
 std::map<int,double> Domain::getLeftBorderMinmod(int cell)
@@ -373,3 +376,4 @@ void Domain::updateMod()
         }
     }
 }
+

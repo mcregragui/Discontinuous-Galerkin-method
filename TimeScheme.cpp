@@ -16,14 +16,22 @@ TimeScheme::~TimeScheme()
 void TimeScheme::advance()
 {
     
+    m_domain->Eigenvector();
+    for(int l=0;l<m_nb;l++)
+    {
+        m_domain->getCells()[l]->borders();
+    }
+    m_domain->minmodCharc();
     m_domain->minmod();
-    m_domain->updateMod();
+    m_domain->updateCharc();
     for(int l=0;l<m_nb;l++)
     {
         m_domain->getCells()[l]->quadrature();
-        m_domain->getCells()[l]->borders();
+       // m_domain->getCells()[l]->borders();
         m_domain->getCells()[l]->eigens();
     }
+    
+    
     std::map<std::pair<int, int>, double> RHS;
     if(m_param->RK==1)
     {
@@ -40,7 +48,7 @@ void TimeScheme::advance()
                 {
                     
                     freedom0[std::make_pair(i,j)]=m_domain->getCells()[l]->getFreedom()[std::make_pair(i,j)]+m_param->dt*RHS[std::make_pair(i,j)];
-                    
+                    //std::cout<<"pf3= "<<RHS[std::make_pair(i,j)]<<std::endl;
                 }
             }
             m_domain->getCells()[l]->updateTemp(freedom0);

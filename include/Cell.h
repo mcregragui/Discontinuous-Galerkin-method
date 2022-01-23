@@ -41,6 +41,7 @@ private:
 
     double m_maxEigen;
 
+    std::vector<double> m_eigenVec;
 
 
 
@@ -85,6 +86,8 @@ public:
     void updateTemp(std::map<std::pair<int,int>,double> temp){m_temp=temp;};
 
     void updateMod(int i, int j, double a){m_freedom[std::make_pair(i,j)]=a;};
+
+    std::vector<double> getEigen(){return m_eigenVec;};
 
 
 };

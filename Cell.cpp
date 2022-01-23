@@ -103,6 +103,19 @@ std::map<int,double> Cell::getInit()
             init[1]=0.0;
             init[2]=0.1/(m_param->gamma-1.0);
         }
+        /*if(m_rightPos<=0.0)
+        {
+            init[0]=0.445;
+            init[1]=0.31061;
+            init[2]=3.528/(m_param->gamma-1.0)+0.5*0.698*0.31061;
+
+        }
+        else
+        {
+            init[0]=0.5;
+            init[1]=0.0;
+            init[2]=0.571/(m_param->gamma-1.0);
+        }*/
 
         return init;
     }
@@ -412,7 +425,18 @@ void Cell::eigens()
         //---------------------------------------------------Max eigen---------------------------------
 
         m_maxEigen=std::max(fabs(m_rightEigen),fabs(m_leftEigen));
-        
+
+        //----------------------------------------------------------------------------------------------
+        m_eigenVec={0,0,0};
+        sol0=getSolution(m_pos);
+        u=sol0[1]/sol0[0];
+      
+        p=((m_param->gamma-1.0)*(sol0[2]-0.5*sol0[1]*sol0[1]/sol0[0]));
+      
+        c=sqrt(fabs(m_param->gamma*p/sol0[0]));
+        m_eigenVec[0]=u-c;
+        m_eigenVec[1]=u;
+        m_eigenVec[2]=u+c;  
     }
 };
 
