@@ -261,23 +261,40 @@ void Domain::minmodCharc()
             
             deltaPlus=project(m_EigenLeft[key],p);
             deltaMinus=project(m_EigenLeft[key],m);
-            m_leftBorderCharc[key]=mimod(left,deltaPlus,deltaMinus);
-            //std::cout<<"left= "<<m_leftBorderCharc[key]<<std::endl;
+            if(cell==0)
+            {
+                m_leftBorderCharc[key]=minmod2(left,deltaPlus);
+            }
+            else if (cell==m_nbCells-1)
+            {
+                m_leftBorderCharc[key]=minmod2(left,deltaMinus);
+            }
+            else
+            {
+                m_leftBorderCharc[key]=mimod(left,deltaPlus,deltaMinus);
+            }
+                     
             left=project(m_EigenRight[key],l);
             
             right=project(m_EigenRight[key],r);
             deltaPlus=project(m_EigenRight[key],p);
             deltaMinus=project(m_EigenRight[key],m);
-            m_rightBorderCharc[key]=mimod(right,deltaPlus,deltaMinus);
-            
-            //std::cout<<"r0= "<<m_rightBorderCharc[key]<<std::endl;
-
-
-            //f=f1*m_leftEigen[key][0]+f2*m_leftEigen[key][1]+f3*m_leftEigen[key][2];
+            if(cell==0)
+            {
+                m_rightBorderCharc[key]=minmod2(right,deltaPlus);
+            }
+            else if (cell==m_nbCells-1)
+            {
+                m_rightBorderCharc[key]=minmod2(right,deltaMinus);
+            }
+            else
+            {
+                m_rightBorderCharc[key]=mimod(right,deltaPlus,deltaMinus);
+            }
+                    
             m_freeLeftCharc[key]=project(m_EigenLeft[key],f);
             m_freeRightCharc[key]=project(m_EigenRight[key],f);
-            //std::cout<<"r0= "<<m_freeLeftCharc[key]<<std::endl;
-           // m_freeCharc[key]=f;
+            
         }
         for(int j=0;j<m_param->nbVar;j++)
         {
@@ -483,13 +500,9 @@ std::map<int, double> Domain::leftFluxCharc(int i)
             //lambda=std::max(fabs(lambda1),fabs(lambda2));
             //std::cout<<"lambda= "<<lambda<<std::endl;
             right=m_freeLeftCharc[std::make_pair(i,j)]-m_leftBorderCharc[std::make_pair(i,j)];
-            left=m_freeRightCharc[std::make_pair(i-1,j)]+m_rightBorderCharc[std::make_pair(i-1,j)];
-            
-        }
-        
-        
-        fluxChar[j]=fluxChar[j]-0.5*lambda*(right-left);
-       
+            left=m_freeRightCharc[std::make_pair(i-1,j)]+m_rightBorderCharc[std::make_pair(i-1,j)];           
+        }       
+        fluxChar[j]=fluxChar[j]-0.5*lambda*(right-left);       
     }
     std::map<int, double> finalFlux;
     for(int j=0;j<m_param->nbVar;j++)

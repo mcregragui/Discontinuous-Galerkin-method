@@ -15,15 +15,27 @@ TimeScheme::~TimeScheme()
 
 void TimeScheme::advance()
 {
-    
-    m_domain->Eigenvector();
-    for(int l=0;l<m_nb;l++)
+    if(m_param->isCharac)
     {
-        m_domain->getCells()[l]->borders();
+        m_domain->Eigenvector();
+        for(int l=0;l<m_nb;l++)
+        {
+            m_domain->getCells()[l]->borders();
+        }
+        m_domain->minmodCharc();
+        m_domain->minmod();
+        m_domain->updateCharc();
     }
-    m_domain->minmodCharc();
-    m_domain->minmod();
-    m_domain->updateCharc();
+    else
+    {
+        for(int l=0;l<m_nb;l++)
+        {
+            m_domain->getCells()[l]->borders();
+        }
+        m_domain->minmod();
+        m_domain->updateMod();
+    }
+    
     for(int l=0;l<m_nb;l++)
     {
         m_domain->getCells()[l]->quadrature();

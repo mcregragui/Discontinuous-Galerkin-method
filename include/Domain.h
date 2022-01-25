@@ -65,6 +65,8 @@ public:
 
     double mimod(double a, double b, double c);
 
+    double minmod2(double a, double b);
+
     std::map<int,double> getLeftBorderMinmod(int cell);
 
     std::map<int,double> getRightBorderMinmod(int cell);

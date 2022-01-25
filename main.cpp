@@ -12,11 +12,12 @@ int main()
     param->dx=0.1;
     param->end=2000;
     param->gamma=1.4;
-    param->nbVar=3;
+    param->nbVar=1;
     param->Order=3;
     param->RK=3;
     param->xmin=-5.0;
     param->nbCells=100;
+    param->isCharac=false;
     
 
     Quadrature* quad=new Quadrature();

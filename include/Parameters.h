@@ -33,6 +33,7 @@ struct Parameters
 
     int nbCells;
 
+    bool isCharac;
     
 };
 

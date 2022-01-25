@@ -169,9 +169,18 @@ std::map<std::pair<int,int>,double> Domain::flux(int l)
 {
    
     std::map<std::pair<int,int>,double> flux;
-    std::map<int, double> lFlux;
-    std::map<int, double> rFlux=rightFluxCharc(l);
-    lFlux=leftFluxCharc(l);
+    std::map<int, double> lFlux, rFlux;
+    if(m_param->isCharac)
+    {
+        rFlux=rightFluxCharc(l);
+        lFlux=leftFluxCharc(l);
+    }
+    else
+    {
+        rFlux=rightFlux(l);
+        lFlux=leftFlux(l);
+    }
+    
     
     //std::map<int, double> 
     
@@ -277,13 +286,19 @@ void Domain::minmod()
             
                 deltaPlus=m_cells[cell+1]->getFreedom()[std::make_pair(j,0)]-m_cells[cell]->getFreedom()[std::make_pair(j,0)];
                 deltaMinus=0.0;
-            
+                m_leftBorderMod[key]=minmod2(left,deltaPlus);
+                
+                m_rightBorderMod[key]=minmod2(right,deltaPlus);
             }
             else if(cell==m_nbCells-1)
             {
                 
                 deltaPlus=0.0;
                 deltaMinus=m_cells[cell]->getFreedom()[std::make_pair(j,0)]-m_cells[cell-1]->getFreedom()[std::make_pair(j,0)];
+
+                m_leftBorderMod[key]=minmod2(left,deltaMinus);
+                
+                m_rightBorderMod[key]=minmod2(right,deltaMinus);
             
             }
             else
@@ -292,21 +307,18 @@ void Domain::minmod()
                 deltaPlus=m_cells[cell+1]->getFreedom()[std::make_pair(j,0)]-m_cells[cell]->getFreedom()[std::make_pair(j,0)];
 
                 deltaMinus=m_cells[cell]->getFreedom()[std::make_pair(j,0)]-m_cells[cell-1]->getFreedom()[std::make_pair(j,0)];
-                
+
+                m_leftBorderMod[key]=mimod(left,deltaPlus,deltaMinus);
+
+                m_rightBorderMod[key]=mimod(right,deltaPlus,deltaMinus);                
             }
-
-            m_leftBorderMod[key]=mimod(left,deltaPlus,deltaMinus);
-
-            m_rightBorderMod[key]=mimod(right,deltaPlus,deltaMinus);
-
-        }
-        
+        }       
     }
 };
 
 double Domain::mimod(double a, double b, double c)
 {
-    double M=0.01;
+    double M=1.0;
     if(fabs(a)<=M*m_param->dx*m_param->dx)
     {
         return a;
@@ -328,6 +340,31 @@ double Domain::mimod(double a, double b, double c)
         return 0.0;
     }
   
+};
+
+double Domain::minmod2(double a, double b)
+{
+    double M=1.0;
+    if(fabs(a)<=M*m_param->dx*m_param->dx)
+    {
+        return a;
+    }
+    else if(a*b>0)
+    {
+        if(a>=0)
+        {
+            return std::min({fabs(a),fabs(b)});
+        }
+        else
+        {
+            return -1.0*std::min({fabs(a),fabs(b)});
+        }        
+    }
+    else
+    {
+        //std::cout<<"enter 2"<<std::endl;
+        return 0.0;
+    }
 };
 
 std::map<int,double> Domain::getLeftBorderMinmod(int cell)
